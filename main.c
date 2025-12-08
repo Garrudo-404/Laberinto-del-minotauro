@@ -53,6 +53,8 @@ const osThreadAttr_t GameTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
+volatile uint8_t temp_turno=45;//volatile ya que esta variable la toca la interrupcion
+uint8_t jugador_actual= 1;
 
 /* USER CODE END PV */
 
@@ -69,7 +71,7 @@ void StartGameTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void TurnoLEDS(uint8_t jugador);
 /* USER CODE END 0 */
 
 /**
@@ -292,12 +294,23 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
@@ -309,7 +322,27 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void TurnoLEDS(uint8_t jugador){
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);//limpiamos los leds
 
+	switch (jugador){
+	case 1:
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+		break;
+	case 2:
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
+		break;
+	case 3:
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
+		break;
+	case 4:
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+		break;
+
+
+
+	}
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartGameTask */
@@ -322,9 +355,27 @@ static void MX_GPIO_Init(void)
 void StartGameTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+	HAL_TIM_Base_Start_IT(&htim2);//arrancamos el temporizador una vez empieza el juego
+	jugador_actual=1;
+	temp_turno = 45;
+	TurnoLEDS(jugador_actual);//led del primer jugador
+
   /* Infinite loop */
   for(;;)
   {
+	  //chequeamos el tiempo
+	  if(temp_turno==0)
+	  {
+		  jugador_actual++;
+		  if(jugador_actual>4){jugador_actual=1;}
+
+		  //actualizamos LED
+		  TurnoLEDS(jugador_actual);
+
+		  //reiniciamos el reloj
+		  temp_turno=45;
+	  }
+
     osDelay(1);
   }
   /* USER CODE END 5 */
@@ -345,9 +396,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6)
   {
-    HAL_IncTick();//incrementa el tick del reloj interno, 1ms en cada callback
+    HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+  if (htim->Instance == TIM2)//esta interrupcion se ejecuta cada segundo
+  {
+	  if (temp_turno > 0){
+		  temp_turno--;
+	  }
+  }
 
   /* USER CODE END Callback 1 */
 }
