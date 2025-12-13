@@ -122,6 +122,14 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // INICIALIZACIÓN DEL LCD
+    LCD1602_Begin4BIT(GPIOE, RS_Pin, E_Pin, GPIOD, D4_Pin, D5_Pin, D6_Pin, D7_Pin);
+
+    // Imprimimos el mensaje en pantalla
+    LCD1602_print("El Minotauro");
+    LCD1602_2ndLine();
+    LCD1602_print("A cacharrear");
+    LCD1602_noBlink();
   /* USER CODE END 2 */
 
   /* Init scheduler */
