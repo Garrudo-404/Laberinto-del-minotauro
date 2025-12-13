@@ -10,41 +10,70 @@
 
 extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
+extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if(GPIO_Pin==GPIO_PIN_0)
+	if(GPIO_Pin == GPIO_PIN_0)
 	{
 		//liberamos al semaforo con la interrupcion
 		osSemaphoreRelease(SemBinGolpeHandle);
 	}
+	if (GPIO_Pin == IR1_SENSOR_Pin)
+	    {
+	            osSemaphoreRelease(SemBinIRHandle);
+	    }
 }
+
+// ASUMIMOS:
+// 1. Existe 'SemBinIRHandle' (creado en main.c)
+// 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
 
 void Start_Input_Task(void *argument)
 {
-  /* USER CODE BEGIN Start_Input_Task */
-	EventoJuego mensaje_evento;
-  /* Infinite loop */
-  for(;;)
-  {
-	  //lo bloqueo hasta que no haya un evento
-	  osSemaphoreAcquire(SemBinGolpeHandle, osWaitForever);
-	  //Hago que espere 50ms para que la señal se estabilice
-    osDelay(50);
+    EventoJuego mensaje_evento;
+    // Timeout pequeño para evitar bloqueo infinito y ceder CPU a otras tareas
+    const uint32_t check_timeout = 10;
 
-    //confirmo que tras 50ms la señal se ha estabilizado y sigue sientdo set
-    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
+    for(;;)
     {
-    	//activamos evento de golpe
-    	mensaje_evento = Event_GOLPE;
+        // ----------------------------------------------------
+        // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
+        // ----------------------------------------------------
+        if (osSemaphoreAcquire(SemBinGolpeHandle, check_timeout) == osOK)
+        {
+            // Retardo para el anti-rebote (después de despertar)
+            osDelay(50);
 
-    	//enviamos mensaje a la gametask con la cola
-    	osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
+            // Confirmamos que la señal sigue activa (Golpe)
+            if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
+            {
+                mensaje_evento = Event_GOLPE;
+                osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
 
-    	//esperamos a que pase la deteccion de golpe
-    	while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
-    		osDelay(10);
-    	}
+                // Lógica LCD si fuera necesaria para el golpe
+
+                // Esperamos a que se libere el pulsador
+                while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
+                    osDelay(10);
+                }
+            }
+        }
+
+        // ----------------------------------------------------
+        // 2. MANEJO DE EVENTO IR (GPIOC, PIN_1)
+        // ----------------------------------------------------
+        if (osSemaphoreAcquire(SemBinIRHandle, 20) == osOK)
+        {
+            osDelay(5); // antirrebote
+
+            if (HAL_GPIO_ReadPin(GPIOC, IR1_SENSOR_Pin) == GPIO_PIN_RESET)
+            {
+                mensaje_evento = Event_IR_DETECTED;
+                osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
+            }
+        }
+
+
     }
-  }
 }
 

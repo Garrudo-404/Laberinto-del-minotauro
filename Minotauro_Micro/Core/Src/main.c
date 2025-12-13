@@ -70,7 +70,10 @@ const osSemaphoreAttr_t SemBinGolpe_attributes = {
   .name = "SemBinGolpe"
 };
 /* USER CODE BEGIN PV */
-
+osSemaphoreId_t SemBinIRHandle;
+const osSemaphoreAttr_t SemBinIR_attributes = {
+  .name = "SemBinIR"
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -145,6 +148,8 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+  /* creation of SemBinIR */
+  SemBinIRHandle = osSemaphoreNew(1, 1, &SemBinIR_attributes);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -327,6 +332,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
@@ -337,6 +343,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, RS_Pin|E_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : IR1_SENSOR_Pin */
+  GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -380,15 +392,6 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartGameTask */
-
-
-/* USER CODE BEGIN Header_Start_Input_Task */
-/**
-* @brief Function implementing the Input_Task thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_Start_Input_Task */
 
 
 /**

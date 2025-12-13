@@ -11,7 +11,8 @@
 typedef enum {
 	Event_NONE=0,
 	Event_GOLPE,
-	Event_FIN_TEMP
+	Event_FIN_TEMP,
+	Event_IR_DETECTED
 } EventoJuego;
 
 #endif /* INC_EVENTOS_JUEGO_H_ */

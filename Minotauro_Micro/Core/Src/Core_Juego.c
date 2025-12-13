@@ -54,9 +54,24 @@ void StartGameTask(void *argument)
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-		    		osDelay(10000);
+
+		    		//Mensaje fin de partida
+		    		LCD1602_clear();
+		    		        LCD1602_print("!!! GAME OVER !!!");
+		    		        LCD1602_2ndLine();
+		    		        LCD1602_print("Jugador ");
+		    		        LCD1602_print(jugadores[jugador_actual].nombre);
 
 		    	}
+		    	break;
+		    case Event_IR_DETECTED:
+		    	 // Visualización en LCD
+		    	                LCD1602_clear();
+		    	                LCD1602_1stLine();
+		    	                LCD1602_print("JUGADOR CAIDO!!");
+		    	                LCD1602_2ndLine();
+		    	                LCD1602_print("Vuelva al inicio");
+		    	                break;
 
 		  }
 	  }
