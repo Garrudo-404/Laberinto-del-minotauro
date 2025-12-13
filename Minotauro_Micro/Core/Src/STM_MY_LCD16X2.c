@@ -355,7 +355,26 @@ void LCD1602_PrintInt(int number)
 //2. Float
 void LCD1602_PrintFloat(float number, int decimalPoints)
 {
-	char numStr[16];
-	sprintf(numStr,"%.*f",decimalPoints, number);
-	LCD1602_print(numStr);
+    long integerPart = (long)number; // Parte entera
+    float fractionalPart = number - (float)integerPart; // Parte decimal
+
+    // 1. Imprimir la parte entera
+    LCD1602_printNum(integerPart); // Asumiendo que tiene una función para enteros
+
+    // 2. Imprimir el punto decimal
+    LCD1602_print(".");
+
+    // 3. Convertir y imprimir la parte decimal
+    // Multiplicamos para obtener los 'decimalPoints' y luego la convertimos a entero
+    for (int i = 0; i < decimalPoints; i++) {
+        fractionalPart *= 10;
+    }
+    long decimalValue = (long)(fractionalPart + 0.5f); // +0.5 para el redondeo
+
+    // Si la parte decimal es negativa (para números negativos), la hacemos positiva para la impresión
+    if (decimalValue < 0) {
+        decimalValue = -decimalValue;
+    }
+
+    LCD1602_printNum(decimalValue);
 }
