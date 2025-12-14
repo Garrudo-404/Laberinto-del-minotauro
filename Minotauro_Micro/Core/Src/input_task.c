@@ -15,12 +15,16 @@ extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == GPIO_PIN_0)
 	{
+
 		//liberamos al semaforo con la interrupcion
 		osSemaphoreRelease(SemBinGolpeHandle);
 	}
 	if (GPIO_Pin == IR1_SENSOR_Pin)
 	    {
-	            osSemaphoreRelease(SemBinIRHandle);
+		/*LCD1602_clear();
+		LCD1602_print("Sensor IR");*/
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+	    osSemaphoreRelease(SemBinIRHandle);
 	    }
 }
 
