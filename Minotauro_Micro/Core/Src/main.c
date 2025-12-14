@@ -65,26 +65,11 @@ const osMessageQueueAttr_t ColaEvento_attributes = {
   .name = "ColaEvento"
 };
 /* Definitions for SemBinGolpe */
-/*osSemaphoreId_t SemBinGolpeHandle;
+osSemaphoreId_t SemBinGolpeHandle;
 const osSemaphoreAttr_t SemBinGolpe_attributes = {
   .name = "SemBinGolpe"
-};*/
-/* USER CODE BEGIN PV */
-<<<<<<< Updated upstream
-=======
-/*osSemaphoreId_t SemBinIRHandle;
-const osSemaphoreAttr_t SemBinIR_attributes = {
-  .name = "SemBinIR"
-};*/
-
-/* Definición Global (fuera de funciones) */
-osEventFlagsId_t InputEventsHandle;
-
-const osEventFlagsAttr_t InputEvents_attributes = {
-  .name = "InputEvents"
 };
-
->>>>>>> Stashed changes
+/* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
 
@@ -148,15 +133,10 @@ int main(void)
 
   /* Create the semaphores(s) */
   /* creation of SemBinGolpe */
-  //SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
+  SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
-<<<<<<< Updated upstream
-=======
-  /* creation of SemBinIR */
-  //SemBinIRHandle = osSemaphoreNew(1, 1, &SemBinIR_attributes);
->>>>>>> Stashed changes
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -184,8 +164,6 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  //Flags
-  InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -345,21 +323,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-<<<<<<< Updated upstream
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
-=======
-  HAL_GPIO_WritePin(GPIOD, D4_Pin|D5_Pin|D6_Pin|D7_Pin
-                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, RS_Pin|E_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : IR1_SENSOR_Pin */
-  GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
->>>>>>> Stashed changes
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
