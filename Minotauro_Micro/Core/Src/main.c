@@ -32,7 +32,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//flags definidas
+#define FLAG_GOLPE  0x00000001U
+#define FLAG_IR     0x00000002U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
