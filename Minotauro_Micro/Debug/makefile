@@ -64,8 +64,13 @@ all: main-build
 main-build: Minotauro_Micro.elf secondary-outputs
 
 # Tool invocations
+<<<<<<< Updated upstream
 Minotauro_Micro.elf Minotauro_Micro.map: $(OBJS) $(USER_OBJS) C:\Users\danie\STM32CubeIDE\workspace_1.19.0\Minotauro_Micro\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-gcc -o "Minotauro_Micro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\danie\STM32CubeIDE\workspace_1.19.0\Minotauro_Micro\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Minotauro_Micro.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+=======
+Minotauro_Micro.elf Minotauro_Micro.map: $(OBJS) $(USER_OBJS) C:\Users\danie\OneDrive\Escritorio\uni\Año\ 4\infor\trabajo\Laberinto-del-minotauro\Minotauro_Micro\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Minotauro_Micro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\danie\OneDrive\Escritorio\uni\Año 4\infor\trabajo\Laberinto-del-minotauro\Minotauro_Micro\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Minotauro_Micro.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+>>>>>>> Stashed changes
 	@echo 'Finished building target: $@'
 	@echo ' '
 
