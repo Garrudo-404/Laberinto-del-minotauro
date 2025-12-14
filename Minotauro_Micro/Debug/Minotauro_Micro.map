@@ -4837,21 +4837,20 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
                 0x08000ba4                __aeabi_ldiv0
  *(.text*)
  .text.StartGameTask
-                0x08000ba8      0x208 ./Core/Src/Core_Juego.o
+                0x08000ba8      0x20c ./Core/Src/Core_Juego.o
                 0x08000ba8                StartGameTask
  .text.TurnoLEDS
-                0x08000db0       0x80 ./Core/Src/Core_Juego.o
-                0x08000db0                TurnoLEDS
+                0x08000db4       0x80 ./Core/Src/Core_Juego.o
+                0x08000db4                TurnoLEDS
  .text.Temp_Tick_Turno
-                0x08000e30       0x2c ./Core/Src/Core_Juego.o
-                0x08000e30                Temp_Tick_Turno
+                0x08000e34       0x2c ./Core/Src/Core_Juego.o
+                0x08000e34                Temp_Tick_Turno
  .text.LCD1602_EnablePulse
-                0x08000e5c       0x40 ./Core/Src/STM_MY_LCD16X2.o
+                0x08000e60       0x40 ./Core/Src/STM_MY_LCD16X2.o
  .text.LCD1602_RS
-                0x08000e9c       0x44 ./Core/Src/STM_MY_LCD16X2.o
+                0x08000ea0       0x44 ./Core/Src/STM_MY_LCD16X2.o
  .text.LCD1602_write
-                0x08000ee0      0x1cc ./Core/Src/STM_MY_LCD16X2.o
- *fill*         0x080010ac        0x4 
+                0x08000ee4      0x1cc ./Core/Src/STM_MY_LCD16X2.o
  .text.LCD1602_TIM_Config
                 0x080010b0       0xc0 ./Core/Src/STM_MY_LCD16X2.o
  .text.LCD1602_TIM_MicorSecDelay
@@ -6242,32 +6241,32 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .debug_macro   0x000238cb      0x246 ./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o
  .debug_macro   0x00023b11      0x1c0 ./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o
 
-.debug_line     0x00000000    0x18c71
- .debug_line    0x00000000      0xaef ./Core/Src/Core_Juego.o
- .debug_line    0x00000aef      0xd60 ./Core/Src/STM_MY_LCD16X2.o
- .debug_line    0x0000184f      0xa55 ./Core/Src/input_task.o
- .debug_line    0x000022a4      0xba2 ./Core/Src/main.o
- .debug_line    0x00002e46      0x7d2 ./Core/Src/stm32f4xx_hal_msp.o
- .debug_line    0x00003618      0x7c4 ./Core/Src/stm32f4xx_hal_timebase_tim.o
- .debug_line    0x00003ddc      0x817 ./Core/Src/stm32f4xx_it.o
- .debug_line    0x000045f3      0x588 ./Core/Src/sysmem.o
- .debug_line    0x00004b7b      0x7bc ./Core/Src/system_stm32f4xx.o
- .debug_line    0x00005337       0x7a ./Core/Startup/startup_stm32f407vgtx.o
- .debug_line    0x000053b1      0xa38 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
- .debug_line    0x00005de9      0xd08 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
- .debug_line    0x00006af1      0xfa4 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
- .debug_line    0x00007a95      0xb90 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
- .debug_line    0x00008625      0xe47 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
- .debug_line    0x0000946c     0x37ad ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.o
- .debug_line    0x0000cc19     0x1998 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.o
- .debug_line    0x0000e5b1     0x2580 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o
- .debug_line    0x00010b31     0x2522 ./Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.o
- .debug_line    0x00013053      0x797 ./Middlewares/Third_Party/FreeRTOS/Source/list.o
- .debug_line    0x000137ea     0x1708 ./Middlewares/Third_Party/FreeRTOS/Source/queue.o
- .debug_line    0x00014ef2     0x1caf ./Middlewares/Third_Party/FreeRTOS/Source/tasks.o
- .debug_line    0x00016ba1      0xdd7 ./Middlewares/Third_Party/FreeRTOS/Source/timers.o
- .debug_line    0x00017978      0x94b ./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o
- .debug_line    0x000182c3      0x9ae ./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o
+.debug_line     0x00000000    0x18c72
+ .debug_line    0x00000000      0xaf0 ./Core/Src/Core_Juego.o
+ .debug_line    0x00000af0      0xd60 ./Core/Src/STM_MY_LCD16X2.o
+ .debug_line    0x00001850      0xa55 ./Core/Src/input_task.o
+ .debug_line    0x000022a5      0xba2 ./Core/Src/main.o
+ .debug_line    0x00002e47      0x7d2 ./Core/Src/stm32f4xx_hal_msp.o
+ .debug_line    0x00003619      0x7c4 ./Core/Src/stm32f4xx_hal_timebase_tim.o
+ .debug_line    0x00003ddd      0x817 ./Core/Src/stm32f4xx_it.o
+ .debug_line    0x000045f4      0x588 ./Core/Src/sysmem.o
+ .debug_line    0x00004b7c      0x7bc ./Core/Src/system_stm32f4xx.o
+ .debug_line    0x00005338       0x7a ./Core/Startup/startup_stm32f407vgtx.o
+ .debug_line    0x000053b2      0xa38 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+ .debug_line    0x00005dea      0xd08 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+ .debug_line    0x00006af2      0xfa4 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
+ .debug_line    0x00007a96      0xb90 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+ .debug_line    0x00008626      0xe47 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+ .debug_line    0x0000946d     0x37ad ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.o
+ .debug_line    0x0000cc1a     0x1998 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.o
+ .debug_line    0x0000e5b2     0x2580 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o
+ .debug_line    0x00010b32     0x2522 ./Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.o
+ .debug_line    0x00013054      0x797 ./Middlewares/Third_Party/FreeRTOS/Source/list.o
+ .debug_line    0x000137eb     0x1708 ./Middlewares/Third_Party/FreeRTOS/Source/queue.o
+ .debug_line    0x00014ef3     0x1caf ./Middlewares/Third_Party/FreeRTOS/Source/tasks.o
+ .debug_line    0x00016ba2      0xdd7 ./Middlewares/Third_Party/FreeRTOS/Source/timers.o
+ .debug_line    0x00017979      0x94b ./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o
+ .debug_line    0x000182c4      0x9ae ./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o
 
 .debug_str      0x00000000    0xd67c5
  .debug_str     0x00000000    0xd67c5 ./Core/Src/Core_Juego.o

@@ -30,7 +30,7 @@ void StartGameTask(void *argument)
 	jugador_actual=0;
 	temp_turno = 45;
 
-	EventoJuego evento_recibido;
+	EventoJuego evento_recibido=0;
 
 	for(uint8_t i=0;i<NUM_JUGADORES;i++){
 		jugadores[i].id=i+1;
