@@ -12,6 +12,7 @@
 
 #define NUM_JUGADORES 4
 
+
 extern TIM_HandleTypeDef htim2;//Me la traigo al codigo
 extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
@@ -29,7 +30,7 @@ void StartGameTask(void *argument)
 	jugador_actual=0;
 	temp_turno = 45;
 
-	EventoJuego evento_recibido;
+	EventoJuego evento_recibido=0;
 
 	for(uint8_t i=0;i<NUM_JUGADORES;i++){
 		jugadores[i].id=i+1;
@@ -48,15 +49,33 @@ void StartGameTask(void *argument)
 		  {
 		    case Event_GOLPE:
 		    	jugadores[jugador_actual].golpes++;
+		    	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+
 		    	if(jugadores[jugador_actual].golpes == 10)
 		    	{
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-		    		osDelay(10000);
+
+		    		//Mensaje fin de partida
+		    		LCD1602_clear();
+		    		LCD1602_print("!!! GAME OVER !!!");
+		    		LCD1602_2ndLine();
+		    		LCD1602_print("Jugador ");
+		    		LCD1602_print(jugadores[jugador_actual].nombre);
 
 		    	}
+		    	break;
+		    case Event_IR_DETECTED:
+		    	 // Visualización en LCD
+
+		    	                LCD1602_clear();
+		    	                LCD1602_1stLine();
+		    	                LCD1602_print("JUGADOR CAIDO!!");
+		    	                LCD1602_2ndLine();
+		    	                LCD1602_print("Vuelva al inicio");
+		    	                break;
 
 		  }
 	  }

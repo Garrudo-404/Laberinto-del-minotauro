@@ -11,6 +11,7 @@
 typedef enum {
 	Event_NONE=0,
 	Event_GOLPE,
+	Event_IR_DETECTED,
 	Event_FIN_TEMP
 } EventoJuego;
 

@@ -70,7 +70,10 @@ const osSemaphoreAttr_t SemBinGolpe_attributes = {
   .name = "SemBinGolpe"
 };
 /* USER CODE BEGIN PV */
-
+osSemaphoreId_t SemBinIRHandle;
+const osSemaphoreAttr_t SemBinIR_attributes = {
+  .name = "SemBinIR"
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,6 +125,14 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // INICIALIZACIÓN DEL LCD
+    LCD1602_Begin4BIT(GPIOE, RS_Pin, E_Pin, GPIOD, D4_Pin, D5_Pin, D6_Pin, D7_Pin);
+
+    // Imprimimos el mensaje en pantalla
+    LCD1602_print("  El MINOTAURO");
+    LCD1602_2ndLine();
+    LCD1602_print("    A jugar");
+    LCD1602_noBlink();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -137,6 +148,8 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+  /* creation of SemBinIR */
+  SemBinIRHandle = osSemaphoreNew(1, 1, &SemBinIR_attributes);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -319,11 +332,23 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, D4_Pin|D5_Pin|D6_Pin|D7_Pin
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, RS_Pin|E_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : IR1_SENSOR_Pin */
+  GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -331,17 +356,29 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  /*Configure GPIO pins : D4_Pin D5_Pin D6_Pin D7_Pin
+                           PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = D4_Pin|D5_Pin|D6_Pin|D7_Pin
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : RS_Pin E_Pin */
+  GPIO_InitStruct.Pin = RS_Pin|E_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -351,14 +388,13 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-
-/* USER CODE BEGIN Header_Start_Input_Task */
+/* USER CODE BEGIN Header_StartGameTask */
 /**
-* @brief Function implementing the Input_Task thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_Start_Input_Task */
+  * @brief  Function implementing the GameTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartGameTask */
 
 
 /**
