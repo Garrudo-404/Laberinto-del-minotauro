@@ -65,15 +65,24 @@ const osMessageQueueAttr_t ColaEvento_attributes = {
   .name = "ColaEvento"
 };
 /* Definitions for SemBinGolpe */
-osSemaphoreId_t SemBinGolpeHandle;
+/*osSemaphoreId_t SemBinGolpeHandle;
 const osSemaphoreAttr_t SemBinGolpe_attributes = {
   .name = "SemBinGolpe"
-};
+};*/
 /* USER CODE BEGIN PV */
-osSemaphoreId_t SemBinIRHandle;
+/*osSemaphoreId_t SemBinIRHandle;
 const osSemaphoreAttr_t SemBinIR_attributes = {
   .name = "SemBinIR"
+};*/
+
+/* Definición Global (fuera de funciones) */
+osEventFlagsId_t InputEventsHandle;
+
+const osEventFlagsAttr_t InputEvents_attributes = {
+  .name = "InputEvents"
 };
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -144,12 +153,12 @@ int main(void)
 
   /* Create the semaphores(s) */
   /* creation of SemBinGolpe */
-  SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
+  //SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* creation of SemBinIR */
-  SemBinIRHandle = osSemaphoreNew(1, 1, &SemBinIR_attributes);
+  //SemBinIRHandle = osSemaphoreNew(1, 1, &SemBinIR_attributes);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -177,6 +186,8 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
+  //Flags
+  InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -346,7 +357,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : IR1_SENSOR_Pin */
   GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
 

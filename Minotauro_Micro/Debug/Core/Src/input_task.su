@@ -1,2 +1,2 @@
-../Core/Src/input_task.c:15:6:HAL_GPIO_EXTI_Callback	16	static
-../Core/Src/input_task.c:35:6:Start_Input_Task	24	static
+../Core/Src/input_task.c:20:6:HAL_GPIO_EXTI_Callback	24	static
+../Core/Src/input_task.c:64:6:Start_Input_Task	32	static
