@@ -43,6 +43,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
@@ -61,16 +63,23 @@ const osThreadAttr_t Input_Task_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for FPGA_COM_Task */
+osThreadId_t FPGA_COM_TaskHandle;
+const osThreadAttr_t FPGA_COM_Task_attributes = {
+  .name = "FPGA_COM_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for ColaEvento */
 osMessageQueueId_t ColaEventoHandle;
 const osMessageQueueAttr_t ColaEvento_attributes = {
   .name = "ColaEvento"
 };
 /* Definitions for SemBinGolpe */
-/*osSemaphoreId_t SemBinGolpeHandle;
-const osSemaphoreAttr_t SemBinGolpe_attributes = {
-  .name = "SemBinGolpe"
-};*/
+//osSemaphoreId_t SemBinGolpeHandle;
+//const osSemaphoreAttr_t SemBinGolpe_attributes = {
+ // .name = "SemBinGolpe"
+//};
 /* USER CODE BEGIN PV */
 /*osSemaphoreId_t SemBinIRHandle;
 const osSemaphoreAttr_t SemBinIR_attributes = {
@@ -92,8 +101,10 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_SPI1_Init(void);
 void StartGameTask(void *argument);
 void Start_Input_Task(void *argument);
+void StartFPGA_COM_Task(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -134,6 +145,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   // INICIALIZACIÓN DEL LCD
@@ -156,8 +168,7 @@ int main(void)
   /* Create the semaphores(s) */
   /* creation of SemBinGolpe */
   //SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
-  //Flags
-    InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* creation of SemBinIR */
@@ -182,6 +193,9 @@ int main(void)
 
   /* creation of Input_Task */
   Input_TaskHandle = osThreadNew(Start_Input_Task, NULL, &Input_Task_attributes);
+
+  /* creation of FPGA_COM_Task */
+  FPGA_COM_TaskHandle = osThreadNew(StartFPGA_COM_Task, NULL, &FPGA_COM_Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -251,6 +265,44 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_16BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
 }
 
 /**
@@ -351,6 +403,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, D4_Pin|D5_Pin|D6_Pin|D7_Pin
                           |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
@@ -360,7 +415,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : IR1_SENSOR_Pin */
   GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA0 */
@@ -368,6 +423,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SPI_CS_Pin */
+  GPIO_InitStruct.Pin = SPI_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SPI_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D4_Pin D5_Pin D6_Pin D7_Pin
                            PD12 PD13 PD14 PD15 */
@@ -387,11 +449,8 @@ static void MX_GPIO_Init(void)
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
-  //HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
-
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
-  //HAL_NVIC_EnableIRQ(EXTI1_IRQn);
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -400,14 +459,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartGameTask */
-/**
-  * @brief  Function implementing the GameTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartGameTask */
 
 
 /**

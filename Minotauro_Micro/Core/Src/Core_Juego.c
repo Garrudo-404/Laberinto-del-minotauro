@@ -14,7 +14,7 @@
 
 
 extern TIM_HandleTypeDef htim2;//Me la traigo al codigo
-extern osSemaphoreId_t SemBinGolpeHandle;
+//extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 
 volatile uint8_t temp_turno;//volatile ya que esta variable la toca la interrupcion
