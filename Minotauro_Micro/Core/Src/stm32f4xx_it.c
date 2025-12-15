@@ -175,6 +175,11 @@ void EXTI0_IRQHandler(void)
   /* USER CODE END EXTI0_IRQn 1 */
 }
 
+void EXTI1_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(IR1_SENSOR_Pin);
+}
+
 /**
   * @brief This function handles TIM2 global interrupt.
   */

@@ -156,7 +156,8 @@ int main(void)
   /* Create the semaphores(s) */
   /* creation of SemBinGolpe */
   //SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
-
+  //Flags
+    InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* creation of SemBinIR */
@@ -188,8 +189,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  //Flags
-  InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
+
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -387,11 +387,11 @@ static void MX_GPIO_Init(void)
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  //HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 
   HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+  //HAL_NVIC_EnableIRQ(EXTI1_IRQn);
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */

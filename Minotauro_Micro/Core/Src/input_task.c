@@ -66,6 +66,9 @@ void Start_Input_Task(void *argument)
 
 	uint32_t flags_recibidos;
 
+	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
     EventoJuego mensaje_evento;
     // Timeout pequeño para evitar bloqueo infinito y ceder CPU a otras tareas
     const uint32_t check_timeout = 10;
@@ -109,11 +112,11 @@ void Start_Input_Task(void *argument)
         {
             //el antirebote ya lo habiamos metido en la gestion de la interrupcion
 
-            if (HAL_GPIO_ReadPin(GPIOC, IR1_SENSOR_Pin) == GPIO_PIN_RESET)
-            {
+
                 mensaje_evento = Event_IR_DETECTED;
                 osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
-            }
+                osDelay(100);
+
         }
 
 
