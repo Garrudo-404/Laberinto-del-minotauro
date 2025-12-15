@@ -1,0 +1,3 @@
+../Core/Src/Core_Juego.c:25:6:StartGameTask	8
+../Core/Src/Core_Juego.c:99:8:TurnoLEDS	5
+../Core/Src/Core_Juego.c:121:8:Temp_Tick_Turno	2
