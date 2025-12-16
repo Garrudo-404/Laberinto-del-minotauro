@@ -1,2 +1,3 @@
-../Core/Src/input_task.c:20:6:HAL_GPIO_EXTI_Callback	24	static
-../Core/Src/input_task.c:64:6:Start_Input_Task	32	static
+../Core/Src/input_task.c:24:6:HAL_GPIO_EXTI_Callback	24	static
+../Core/Src/input_task.c:67:6:Leer_Joystick_Polling	16	static
+../Core/Src/input_task.c:88:6:Start_Input_Task	32	static
