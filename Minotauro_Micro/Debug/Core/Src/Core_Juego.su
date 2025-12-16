@@ -1,3 +1,3 @@
-../Core/Src/Core_Juego.c:25:6:StartGameTask	40	static
-../Core/Src/Core_Juego.c:99:8:TurnoLEDS	8	static
-../Core/Src/Core_Juego.c:121:8:Temp_Tick_Turno	4	static
+../Core/Src/Core_Juego.c:28:6:StartGameTask	40	static
+../Core/Src/Core_Juego.c:179:8:TurnoLEDS	8	static
+../Core/Src/Core_Juego.c:201:8:Temp_Tick_Turno	4	static
