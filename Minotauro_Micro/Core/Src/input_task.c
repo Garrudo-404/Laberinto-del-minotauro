@@ -95,13 +95,16 @@ void Start_Input_Task(void *argument)
 
     for(;;)
     {
+
     	/*PRUEBA CON FLAGS*/
     	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
     	        flags_recibidos = osEventFlagsWait(InputEventsHandle,
     	                                           FLAG_GOLPE | FLAG_IR,
     	                                           osFlagsWaitAny,
-    	                                           osWaitForever);
+    	                                           20);
+     if (!(flags_recibidos & 0x80000000))
+    	{
         // ----------------------------------------------------
         // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
         // ----------------------------------------------------
@@ -138,6 +141,12 @@ void Start_Input_Task(void *argument)
                 osDelay(100);
 
         }
+    	}
+     else
+         {
+             // AQUÍ LLEGAMOS SI PASARON LOS 20ms (TIMEOUT)
+             // No hacemos nada, simplemente seguimos abajo hacia el joystick
+         }
         Leer_Joystick_Polling();
 
     }
