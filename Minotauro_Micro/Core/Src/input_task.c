@@ -12,6 +12,11 @@
 #define FLAG_GOLPE  0x00000001U
 #define FLAG_IR     0x00000002U
 
+/* Variables globales del joystick para Live Expressions */
+volatile uint16_t joyX = 0;
+volatile uint16_t joyY = 0;
+extern ADC_HandleTypeDef hadc1;
+
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 //extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
@@ -57,6 +62,21 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	    }
 }
 
+void Leer_Joystick_Polling(void)
+{
+    // 1. Leer Rank 1 (PA2)
+    HAL_ADC_Start(&hadc1);
+    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+        joyX = HAL_ADC_GetValue(&hadc1);
+    }
+
+    // 2. Leer Rank 2 (PA3)
+    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+        joyY = HAL_ADC_GetValue(&hadc1);
+    }
+
+    HAL_ADC_Stop(&hadc1);
+}
 // ASUMIMOS:
 // 1. Existe 'SemBinIRHandle' (creado en main.c)
 // 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
@@ -118,7 +138,7 @@ void Start_Input_Task(void *argument)
                 osDelay(100);
 
         }
-
+        Leer_Joystick_Polling();
 
     }
 }
