@@ -103,6 +103,8 @@ void Start_Input_Task(void *argument)
     	                                           FLAG_GOLPE | FLAG_IR,
     	                                           osFlagsWaitAny,
     	                                           20);
+    	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
+    	        //no esté enviando la señal de error por medio de una máscara
      if (!(flags_recibidos & 0x80000000))
     	{
         // ----------------------------------------------------
