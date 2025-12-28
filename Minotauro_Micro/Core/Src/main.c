@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "Core_Juego.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -49,8 +48,6 @@ SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
-//variable global para los estados de la MSM
-volatile EstadoJuego estado_actual = ESTADO_INICIO;
 
 /* Definitions for GameTask */
 osThreadId_t GameTaskHandle;

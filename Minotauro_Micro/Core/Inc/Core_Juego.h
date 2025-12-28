@@ -10,13 +10,6 @@
 
 #include "main.h"
 
-typedef enum{
-
-	ESTADO_INICIO,
-	ESTADO_JUGANDO,
-	ESTADO_FIN
-
-}EstadoJuego;
 
 typedef struct{
 	char nombre[15];
