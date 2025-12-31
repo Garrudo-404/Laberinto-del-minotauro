@@ -16,6 +16,7 @@
 volatile uint16_t joyX = 0;
 volatile uint16_t joyY = 0;
 extern ADC_HandleTypeDef hadc1;
+
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 //extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
@@ -61,29 +62,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	    }
 }
 
-
-
-
 void Leer_Joystick_Polling(void)
 {
+    // 1. Leer Rank 1 (PA2)
     HAL_ADC_Start(&hadc1);
-
-    // Leer Eje X (Rank 1)
     if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
         joyX = HAL_ADC_GetValue(&hadc1);
     }
 
-    // Pequeño retardo de seguridad para que el hardware respire
-    for(volatile int i=0; i<100; i++);
-
-    // Leer Eje Y (Rank 2)
+    // 2. Leer Rank 2 (PA3)
     if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
         joyY = HAL_ADC_GetValue(&hadc1);
     }
 
     HAL_ADC_Stop(&hadc1);
 }
-
+// ASUMIMOS:
+// 1. Existe 'SemBinIRHandle' (creado en main.c)
+// 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
 
 void Start_Input_Task(void *argument)
 {
@@ -99,13 +95,18 @@ void Start_Input_Task(void *argument)
 
     for(;;)
     {
+
     	/*PRUEBA CON FLAGS*/
     	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
     	        flags_recibidos = osEventFlagsWait(InputEventsHandle,
     	                                           FLAG_GOLPE | FLAG_IR,
     	                                           osFlagsWaitAny,
-    	                                           osWaitForever);
+    	                                           20);
+    	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
+    	        //no esté enviando la señal de error por medio de una máscara
+     if (!(flags_recibidos & 0x80000000))
+    	{
         // ----------------------------------------------------
         // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
         // ----------------------------------------------------
@@ -142,6 +143,12 @@ void Start_Input_Task(void *argument)
                 osDelay(100);
 
         }
+    	}
+     else
+         {
+             // AQUÍ LLEGAMOS SI PASARON LOS 20ms (TIMEOUT)
+             // No hacemos nada, simplemente seguimos abajo hacia el joystick
+         }
         Leer_Joystick_Polling();
 
     }

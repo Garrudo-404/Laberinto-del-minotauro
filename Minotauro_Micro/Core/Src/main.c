@@ -60,7 +60,7 @@ const osThreadAttr_t GameTask_attributes = {
 osThreadId_t Input_TaskHandle;
 const osThreadAttr_t Input_Task_attributes = {
   .name = "Input_Task",
-  .stack_size = 256 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for ColaEvento */
@@ -69,10 +69,10 @@ const osMessageQueueAttr_t ColaEvento_attributes = {
   .name = "ColaEvento"
 };
 /* Definitions for SemBinGolpe */
-osSemaphoreId_t SemBinGolpeHandle;
+/*osSemaphoreId_t SemBinGolpeHandle;
 const osSemaphoreAttr_t SemBinGolpe_attributes = {
   .name = "SemBinGolpe"
-};
+};*/
 /* USER CODE BEGIN PV */
 /*osSemaphoreId_t SemBinIRHandle;
 const osSemaphoreAttr_t SemBinIR_attributes = {
@@ -159,8 +159,9 @@ int main(void)
 
   /* Create the semaphores(s) */
   /* creation of SemBinGolpe */
-  SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
-
+  //SemBinGolpeHandle = osSemaphoreNew(1, 1, &SemBinGolpe_attributes);
+  //Flags
+    InputEventsHandle = osEventFlagsNew(&InputEvents_attributes);
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* creation of SemBinIR */
@@ -263,52 +264,58 @@ void SystemClock_Config(void)
   */
 static void MX_ADC1_Init(void)
 {
+
   /* USER CODE BEGIN ADC1_Init 0 */
+
   /* USER CODE END ADC1_Init 0 */
 
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
+
   /* USER CODE END ADC1_Init 1 */
 
-  /** Configuración global del motor ADC1 */
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = ENABLE;           // Permite leer múltiples canales en secuencia
-  hadc1.Init.ContinuousConvMode = DISABLE;    // Disparo manual por polling
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 2;             // Vamos a leer 2 canales (X e Y)
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV; // Avisa tras cada canal leído
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** CONFIGURACIÓN RANK 1: Eje X (PA1 -> ADC_CHANNEL_1) */
-  sConfig.Channel = ADC_CHANNEL_1;
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES; // Mayor estabilidad
+  sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** CONFIGURACIÓN RANK 2: Eje Y (PA2 -> ADC_CHANNEL_2) */
-  sConfig.Channel = ADC_CHANNEL_2; // <--- ¡CORRECCIÓN!: Apunta a PA2 (Canal 2)
-  sConfig.Rank = 2;                // Segundo en la secuencia
-  // Mantenemos SamplingTime en 56 ciclos para consistencia
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-
   /* USER CODE BEGIN ADC1_Init 2 */
+
   /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -418,7 +425,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : IR1_SENSOR_Pin */
   GPIO_InitStruct.Pin = IR1_SENSOR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(IR1_SENSOR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA0 */
@@ -445,8 +452,11 @@ static void MX_GPIO_Init(void)
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  //HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+  //HAL_NVIC_EnableIRQ(EXTI1_IRQn);
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -455,6 +465,14 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartGameTask */
+/**
+  * @brief  Function implementing the GameTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartGameTask */
 
 
 /**
