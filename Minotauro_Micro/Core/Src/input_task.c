@@ -17,6 +17,11 @@ volatile uint16_t joyX = 0;
 volatile uint16_t joyY = 0;
 extern ADC_HandleTypeDef hadc1;
 
+// Extern del handle de SPI (definido en main.c por CubeMX)
+extern SPI_HandleTypeDef hspi1;
+/* Variables para el empaquetado de datos */
+uint16_t spi_buffer[2];
+uint16_t pruebas[2]={123,12345};
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 //extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
@@ -150,6 +155,13 @@ void Start_Input_Task(void *argument)
              // No hacemos nada, simplemente seguimos abajo hacia el joystick
          }
         Leer_Joystick_Polling();
+
+        		spi_buffer[0] = joyX;
+                spi_buffer[1] = joyY;
+
+                // 2. Enviamos.
+                // IMPORTANTE: El tercer parámetro es el número de DATOS (en este caso 2 palabras de 16 bits)
+                HAL_SPI_Transmit(&hspi1, (uint8_t*)pruebas, 2, 10);
 
     }
 }
