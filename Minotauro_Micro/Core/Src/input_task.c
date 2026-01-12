@@ -20,8 +20,8 @@ extern ADC_HandleTypeDef hadc1;
 // Extern del handle de SPI (definido en main.c por CubeMX)
 extern SPI_HandleTypeDef hspi1;
 /* Variables para el empaquetado de datos */
-uint8_t spi_buffer[2];
-uint8_t pruebas[2]={123,12345};
+uint16_t spi_buffer[2];
+uint16_t pruebas[2]={123,12345};
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 //extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
