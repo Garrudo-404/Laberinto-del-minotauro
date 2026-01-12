@@ -20,8 +20,8 @@ extern ADC_HandleTypeDef hadc1;
 // Extern del handle de SPI (definido en main.c por CubeMX)
 extern SPI_HandleTypeDef hspi1;
 /* Variables para el empaquetado de datos */
-uint16_t spi_buffer[2];
-uint16_t pruebas[2]={123,12345};
+uint8_t spi_buffer[2];
+uint8_t pruebas[2]={123,12345};
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 //extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
@@ -82,10 +82,33 @@ void Leer_Joystick_Polling(void)
 
     HAL_ADC_Stop(&hadc1);
 }
-// ASUMIMOS:
-// 1. Existe 'SemBinIRHandle' (creado en main.c)
-// 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
 
+
+
+//Convierte el rango 0-4095 a 0-255 asegurando un centro estable.
+
+uint8_t mapear_joystick(uint16_t valor_crudo) {
+
+    // 1. Definir el centro detectado y la zona muerta
+    const uint16_t CENTRO_ADC = 2030;
+    const uint16_t ZONA_MUERTA = 15;
+
+    // 2. Si el joystick está en reposo (dentro de la zona muerta)
+    // Devolvemos 128 (centro exacto de un byte)
+    if (valor_crudo > (CENTRO_ADC - ZONA_MUERTA) && valor_crudo < (CENTRO_ADC + ZONA_MUERTA)) {
+        return 128;
+    }
+
+    // 3. Mapeo lineal para el resto del rango
+    // Simplemente desplazamos 4 bits (dividir por 16)
+    int32_t resultado = (int32_t)(valor_crudo >> 4);
+
+    // 4. Saturación de seguridad
+    if (resultado > 255) return 255;
+    if (resultado < 0)   return 0;
+
+    return (uint8_t)resultado;
+}
 void Start_Input_Task(void *argument)
 {
 
@@ -156,13 +179,18 @@ void Start_Input_Task(void *argument)
          }
         Leer_Joystick_Polling();
 
-        		spi_buffer[0] = joyX;
-                spi_buffer[1] = joyY;
+        		// Suponemos centro medido en 3200
+                 spi_buffer[0] = mapear_joystick(joyX);
+                 spi_buffer[1] = mapear_joystick(joyY);
 
-                // 2. Enviamos.
-                // IMPORTANTE: El tercer parámetro es el número de DATOS (en este caso 2 palabras de 16 bits)
-                HAL_SPI_Transmit(&hspi1, (uint8_t*)pruebas, 2, 10);
+                // Bajamos CS: La FPGA pone su contador a 0 y se prepara
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 
+                // Ahora envio 2 bytes de 8 bits (0-255) ya centrados
+                HAL_SPI_Transmit(&hspi1, spi_buffer, 2, 10);
+
+                // Subimos CS: La FPGA toma los 16 bits recibidos y actualiza el PWM de golpe
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
     }
 }
 
