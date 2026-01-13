@@ -18,81 +18,177 @@ extern TIM_HandleTypeDef htim2;//Me la traigo al codigo
 extern osMessageQueueId_t ColaEventoHandle;
 
 volatile uint8_t temp_turno;//volatile ya que esta variable la toca la interrupcion
+
 uint8_t jugador_actual;
 static Jugador jugadores[NUM_JUGADORES];
 
+volatile EstadoJuego estado_actual = Estado_INICIO;
 
 void StartGameTask(void *argument)
 {
+	osDelay(100);
   /* USER CODE BEGIN 5 */
 	HAL_TIM_Base_Start_IT(&htim2);//arrancamos el temporizador una vez empieza el juego
+
+	EventoJuego evento_recibido=0;
+
 
 	jugador_actual=0;
 	temp_turno = 45;
 
-	EventoJuego evento_recibido=0;
 
-	for(uint8_t i=0;i<NUM_JUGADORES;i++){
-		jugadores[i].id=i+1;
-		sprintf(jugadores[i].nombre, "J%d", i + 1);
-		jugadores[i].golpes= 0;
-	}
 	TurnoLEDS(jugadores[jugador_actual]);
+
+	uint8_t primera_vez = 1;//bandera para reinicializar el juego
 
   /* Infinite loop */
   for(;;)
   {
-	  //leemos cola a ver si hay algun mensaje nuevo
-	  if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, 0) == osOK)
-	  {
-		  switch (evento_recibido)
+	  switch(estado_actual){
+	  case Estado_INICIO:
+		  if(primera_vez)
 		  {
-		    case Event_GOLPE:
-		    	jugadores[jugador_actual].golpes++;
-		    	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+		    LCD1602_clear();
+		    LCD1602_print("  El MINOTAURO");
+		    LCD1602_2ndLine();
+		    LCD1602_print("    A jugar");
+		    LCD1602_noBlink();
 
-		    	if(jugadores[jugador_actual].golpes == 10)
-		    	{
-		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
-		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+		    // Inicializamos datos
+		    jugador_actual = 0;
+		    temp_turno = 45;
+		    for(uint8_t i = 0; i < NUM_JUGADORES; i++){
+		    jugadores[i].id = i + 1;
+		    sprintf(jugadores[i].nombre, "J%d", i + 1);
+		    jugadores[i].golpes = 0;
+		    }
 
-		    		//Mensaje fin de partida
-		    		LCD1602_clear();
-		    		LCD1602_print("!!! GAME OVER !!!");
-		    		LCD1602_2ndLine();
-		    		LCD1602_print("Jugador ");
-		    		LCD1602_print(jugadores[jugador_actual].nombre);
+		    TurnoLEDS(jugadores[jugador_actual]); // LED inicial
 
-		    	}
-		    	break;
-		    case Event_IR_DETECTED:
-		    	 // Visualización en LCD
+		    primera_vez = 0; // Ya hemos inicializado, bajamos la bandera
+		    }
 
-		    	                LCD1602_clear();
-		    	                LCD1602_1stLine();
-		    	                LCD1602_print("JUGADOR CAIDO!!");
-		    	                LCD1602_2ndLine();
-		    	                LCD1602_print("Vuelva al inicio");
-		    	                break;
+		    // Esperamos eventos para pasar de estado
+		    if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, osWaitForever) == osOK)
+		    {
+		      if(evento_recibido == Event_GOLPE)
+		      {
+		        estado_actual = Estado_JUGANDO;
+		        primera_vez = 1; // Importante: Activamos para pintar la pantalla del siguiente estado
+		       }
+		     }
+		     break;
 
+
+	  case Estado_JUGANDO:
+
+
+		  if(primera_vez)
+		  {
+			  LCD1602_clear();
+			  LCD1602_print("TURNO: ");
+			  LCD1602_print(jugadores[jugador_actual].nombre);
+			  LCD1602_2ndLine();
+			  LCD1602_print("GOLPES: ");
+			  LCD1602_print(jugadores[jugador_actual].golpes);
+
+
+
+			  LCD1602_noBlink();
+			  primera_vez=0;
 		  }
+
+
+		  //leemos cola a ver si hay algun mensaje nuevo
+		 	  if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, 100) == osOK)
+		 	  {
+		 		  switch (evento_recibido)
+		 		  {
+		 		    case Event_GOLPE:
+		 		    	jugadores[jugador_actual].golpes++;
+		 		    	char buffer_lcd[16];
+		 		    	sprintf(buffer_lcd, "GOLPES: %d", jugadores[jugador_actual].golpes);
+		 		    	LCD1602_2ndLine();
+		 		    	LCD1602_print(buffer_lcd);
+		 		    	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+
+		 		    	if(jugadores[jugador_actual].golpes >= 10)
+		 		    	{
+		 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+		 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
+		 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
+		 		    		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+
+
+		 		    		estado_actual = Estado_FIN;
+		 		    		primera_vez = 1;
+
+		 		    	}
+		 		    	break;
+
+		 		    case Event_IR_DETECTED:
+		 		    	 // Visualización en LCD
+
+		 		    	 LCD1602_clear();
+		 		    	 LCD1602_1stLine();
+		 		    	 LCD1602_print("JUGADOR CAIDO!!");
+		 		    	 LCD1602_2ndLine();
+		 		    	 LCD1602_print("Vuelva al inicio");
+		 		    	 break;
+
+		 		  }
+		 	  }
+		 		 //chequeamos el tiempo
+		 	 if(temp_turno==0)
+		 	 {
+		      jugador_actual++;
+		 	  if(jugador_actual>(NUM_JUGADORES-1)){jugador_actual=0;}
+
+		       //actualizamos LED
+		 	   TurnoLEDS(jugadores[jugador_actual]);
+
+		 	   //reiniciamos el reloj
+		 	   temp_turno=45;
+
+		 	  // Actualizar LCD para el nuevo jugador
+		 	  LCD1602_clear();
+		 	  LCD1602_print("TURNO: ");
+		 	  LCD1602_print(jugadores[jugador_actual].nombre);
+		 			  }
+		 	break;
+
+	  case Estado_FIN:
+
+		  if(primera_vez)
+		  {
+		    // Luces de fiesta
+		   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_SET);
+
+		   LCD1602_clear();
+		   LCD1602_print("!!! GAME OVER !!!");
+		   LCD1602_2ndLine();
+		   LCD1602_print("VICTORIA: ");
+		   LCD1602_print(jugadores[jugador_actual].nombre);
+		   primera_vez = 0;
+		    }
+	 	  if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, osWaitForever) == osOK){
+	 		  if(evento_recibido==Event_GOLPE){
+
+	 			 HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+		    	 estado_actual = Estado_INICIO;
+		    	 primera_vez = 1;
+	 		  }
+
 	  }
-	  //chequeamos el tiempo
-	  if(temp_turno==0)
-	  {
-		  jugador_actual++;
-		  if(jugador_actual>(NUM_JUGADORES-1)){jugador_actual=0;}
+ 		  break;
 
-		  //actualizamos LED
-		  TurnoLEDS(jugadores[jugador_actual]);
+	  default:
+	      estado_actual = Estado_INICIO; // Recuperación de errores
+	      primera_vez = 1;
+	      break;
 
-		  //reiniciamos el reloj
-		  temp_turno=45;
-	  }
 
-    osDelay(100);
+   }
   }
 }
 

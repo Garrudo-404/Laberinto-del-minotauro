@@ -144,10 +144,10 @@ int main(void)
     LCD1602_Begin4BIT(GPIOE, RS_Pin, E_Pin, GPIOD, D4_Pin, D5_Pin, D6_Pin, D7_Pin);
 
     // Imprimimos el mensaje en pantalla
-    LCD1602_print("  El MINOTAURO");
+    /*LCD1602_print("  El MINOTAURO");
     LCD1602_2ndLine();
     LCD1602_print("    A jugar");
-    LCD1602_noBlink();
+    LCD1602_noBlink();*/
   /* USER CODE END 2 */
 
   /* Init scheduler */

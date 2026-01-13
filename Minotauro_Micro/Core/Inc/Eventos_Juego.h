@@ -15,4 +15,10 @@ typedef enum {
 	Event_FIN_TEMP
 } EventoJuego;
 
+typedef enum {
+	Estado_INICIO,
+	Estado_JUGANDO,
+	Estado_FIN
+}EstadoJuego;
+
 #endif /* INC_EVENTOS_JUEGO_H_ */
