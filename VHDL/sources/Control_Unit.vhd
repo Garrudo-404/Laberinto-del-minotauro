@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity Control_Unit is
     Port (
@@ -10,7 +11,7 @@ entity Control_Unit is
         rx_data_in  : in  STD_LOGIC_VECTOR(7 downto 0);
         rx_dv_in    : in  STD_LOGIC; -- Data Valid (pulso)
         
-        -- Salidas a los Módulos PWM
+        -- Salidas a los Mï¿½dulos PWM
         angle_out_1 : out STD_LOGIC_VECTOR(7 downto 0);
         angle_out_2 : out STD_LOGIC_VECTOR(7 downto 0)
     );
@@ -26,14 +27,14 @@ architecture Behavioral of Control_Unit is
     signal reg_m2 : STD_LOGIC_VECTOR(7 downto 0);
 begin
 
-    -- Proceso Lógico
+    -- Proceso Lï¿½gico
     process(clk, reset)
     begin
-        if reset = '1' then
+        if reset = '0' then
             state <= WAIT_MOTOR_1;
-            -- Valores iniciales (por ejemplo centro: 127)
-            reg_m1 <= "10000000"; 
-            reg_m2 <= "10000000";
+            -- Valores iniciales: Ã¡ngulo 1 = 180, Ã¡ngulo 2 = 0
+            reg_m1 <= std_logic_vector(to_unsigned(180, 8));  -- 180 en 8 bits
+            reg_m2 <= (others => '0');  -- 0 en 8 bits
         elsif rising_edge(clk) then
             case state is
                 -- Estado 1: Esperando dato para Motor 1
@@ -46,14 +47,15 @@ begin
                 -- Estado 2: Esperando dato para Motor 2
                 when WAIT_MOTOR_2 =>
                     if rx_dv_in = '1' then
-                        reg_m2 <= rx_data_in; -- Guardamos dato
+                        -- Invertimos el valor numÃ©rico: 255 - rx_data_in
+                        reg_m2 <= rx_data_in;--std_logic_vector(to_unsigned(255 - to_integer(unsigned(rx_data_in)), 8));
                         state  <= WAIT_MOTOR_1; -- Vuelta a empezar
                     end if;
             end case;
         end if;
     end process;
 
-    -- Conexión de registros a salidas
+    -- Conexiï¿½n de registros a salidas
     angle_out_1 <= reg_m1;
     angle_out_2 <= reg_m2;
 
