@@ -7,28 +7,28 @@ entity SPI_Slave_Rx is
         clk      : in  STD_LOGIC; -- Reloj del sistema (100 MHz)
         reset    : in  STD_LOGIC;
         
-        -- Pines físicos SPI
+        -- Pines fï¿½sicos SPI
         sclk_pin : in  STD_LOGIC;
         ss_pin   : in  STD_LOGIC; -- Active Low (0 es activado)
         mosi_pin : in  STD_LOGIC;
         
         -- Interfaz interna
-        rx_data  : out STD_LOGIC_VECTOR(7 downto 0); -- Byte recibido
-        rx_ready : out STD_LOGIC -- Pulso de 1 ciclo cuando el dato es válido
+        rx_data  : out STD_LOGIC_VECTOR(7 downto 0); -- Solo los 8 LSB (bits 7-0) de los 16 bits recibidos
+        rx_ready : out STD_LOGIC -- Pulso de 1 ciclo cuando el dato es vï¿½lido
     );
 end SPI_Slave_Rx;
 
 architecture Behavioral of SPI_Slave_Rx is
 
-    -- 1. Señales para Sincronización (Doble Flip-Flop)
+    -- 1. Seï¿½ales para Sincronizaciï¿½n (Doble Flip-Flop)
     -- Se usan vectores de 2 bits: bit(0) es actual, bit(1) es previo
     signal sclk_sync : std_logic_vector(1 downto 0);
     signal ss_sync   : std_logic_vector(1 downto 0);
     signal mosi_sync : std_logic_vector(1 downto 0);
 
-    -- 2. Señales de registro interno
-    signal shift_reg : std_logic_vector(7 downto 0); -- Aquí vamos guardando los bits
-    signal bit_cnt   : integer range 0 to 7 := 0;    -- Cuenta bits recibidos
+    -- 2. Seï¿½ales de registro interno
+    signal shift_reg : std_logic_vector(15 downto 0); -- Aquï¿½ vamos guardando los bits
+    signal bit_cnt   : integer range 0 to 15 := 0;    -- Cuenta bits recibidos
     
     -- Detectores de flanco
     signal sclk_rising : std_logic;
@@ -36,12 +36,12 @@ architecture Behavioral of SPI_Slave_Rx is
 begin
 
     -- =========================================================================
-    -- PROCESO 1: Sincronización de señales externas
+    -- PROCESO 1: Sincronizaciï¿½n de seï¿½ales externas
     -- =========================================================================
-    -- Esto protege a la FPGA de señales asíncronas y ruidosas
+    -- Esto protege a la FPGA de seï¿½ales asï¿½ncronas y ruidosas
     process(clk, reset)
     begin
-        if reset = '1' then
+        if reset = '0' then
             sclk_sync <= "00";
             ss_sync   <= "11"; -- Asumimos inactivo (High) al inicio
             mosi_sync <= "00";
@@ -53,16 +53,16 @@ begin
         end if;
     end process;
 
-    -- Detección de flanco de subida en SCLK
+    -- Detecciï¿½n de flanco de subida en SCLK
     -- Ocurre cuando el estado "viejo" (1) es '0' y el "nuevo" (0) es '1'
     sclk_rising <= '1' when (sclk_sync(1) = '0' and sclk_sync(0) = '1') else '0';
 
     -- =========================================================================
-    -- PROCESO 2: Lógica de Recepción SPI
+    -- PROCESO 2: Lï¿½gica de Recepciï¿½n SPI
     -- =========================================================================
     process(clk, reset)
     begin
-        if reset = '1' then
+        if reset = '0' then
             shift_reg <= (others => '0');
             bit_cnt   <= 0;
             rx_data   <= (others => '0');
@@ -72,30 +72,30 @@ begin
             -- Valor por defecto para el pulso de 'listo'
             rx_ready <= '0'; 
 
-            -- Verificamos si el Chip Select (SS) está activo (Nivel Bajo)
-            -- Usamos ss_sync(1) que es la señal limpia y estable
+            -- Verificamos si el Chip Select (SS) estï¿½ activo (Nivel Bajo)
+            -- Usamos ss_sync(1) que es la seï¿½al limpia y estable
             if ss_sync(1) = '0' then
                 
                 -- Si detectamos flanco de subida en el reloj SPI...
                 if sclk_rising = '1' then
                     -- 1. Desplazamos el bit recibido (MOSI) al registro
                     -- Entra por la derecha (LSB) o izquierda dependiendo del protocolo.
-                    -- SPI estándar suele enviar MSB primero.
-                    shift_reg <= shift_reg(6 downto 0) & mosi_sync(1);
+                    -- SPI estï¿½ndar suele enviar MSB primero.
+                    shift_reg <= shift_reg(14 downto 0) & mosi_sync(1);
                     
                     -- 2. Contamos los bits
-                    if bit_cnt = 7 then
-                        -- ¡Tenemos un byte completo!
-                        rx_data  <= shift_reg(6 downto 0) & mosi_sync(1); -- Guardamos el byte final
+                    if bit_cnt = 15 then
+                        -- ï¿½Tenemos un byte completo!
+                        rx_data  <= shift_reg(7 downto 0); -- Solo los 8 bits menos significativos
                         rx_ready <= '1'; -- Disparamos la bandera de "Dato Listo"
-                        bit_cnt  <= 0;   -- Reiniciamos contador para el siguiente byte
+                        bit_cnt  <= 0;   -- Reiniciamos contador para el siguiente dato
                     else
                         bit_cnt <= bit_cnt + 1;
                     end if;
                 end if;
                 
             else
-                -- Si SS sube (se desactiva), reseteamos el contador para evitar desincronización
+                -- Si SS sube (se desactiva), reseteamos el contador para evitar desincronizaciï¿½n
                 bit_cnt <= 0;
             end if;
         end if;
