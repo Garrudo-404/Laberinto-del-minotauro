@@ -17,9 +17,11 @@ volatile uint16_t joyX = 0;
 volatile uint16_t joyY = 0;
 extern ADC_HandleTypeDef hadc1;
 
-//extern osSemaphoreId_t SemBinGolpeHandle;
+volatile uint16_t lectura_actual = 0;
+volatile uint8_t golpe_detectado = 0;
+extern ADC_HandleTypeDef hadc2;
+
 extern osMessageQueueId_t ColaEventoHandle;
-//extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
 extern osEventFlagsId_t InputEventsHandle; // Importamos el handle
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -77,9 +79,45 @@ void Leer_Joystick_Polling(void)
 
     HAL_ADC_Stop(&hadc1);
 }
-// ASUMIMOS:
-// 1. Existe 'SemBinIRHandle' (creado en main.c)
-// 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
+
+void Leer_piezo_minotauro(void)
+{
+	HAL_ADC_Start(&hadc2);
+    // Variables persistentes
+    static uint32_t tiempo_encendido = 0;
+    static uint16_t lectura_anterior = 0;
+
+    // Inicialización del temporizador de seguridad
+    if (tiempo_encendido == 0) {
+        tiempo_encendido = HAL_GetTick();
+        return; // Salimos para esperar al menos un ciclo
+    }
+
+    // 1. POLLING SEGURO (Sin Start/Stop)
+    // Solo esperamos a que el ADC (que ya está corriendo) tenga un dato nuevo
+    if (HAL_ADC_PollForConversion(&hadc2, 1) == HAL_OK)
+    {
+        lectura_actual = HAL_ADC_GetValue(&hadc2);
+
+        // 2. FILTRO DE SEGURIDAD (Tiempo + Derivada)
+        // Solo evaluamos si han pasado los 2 segundos de estabilización
+        if ((HAL_GetTick() - tiempo_encendido) > 400)
+        {
+            // Calculamos la diferencia brusca para ignorar la inclinación
+            int32_t derivada = (int32_t)lectura_actual - (int32_t)lectura_anterior;
+
+            // Si el salto es mayor a 500 (ajustable), es un impacto real
+            if (derivada > 400) {
+                golpe_detectado = 1;
+            }
+        }
+
+        // Guardamos la lectura para la siguiente comparación de derivada
+        lectura_anterior = lectura_actual;
+    }
+    HAL_ADC_Stop(&hadc2);
+}
+
 
 void Start_Input_Task(void *argument)
 {
@@ -150,7 +188,7 @@ void Start_Input_Task(void *argument)
              // No hacemos nada, simplemente seguimos abajo hacia el joystick
          }
         Leer_Joystick_Polling();
-
+        Leer_piezo_minotauro();
     }
 }
 
