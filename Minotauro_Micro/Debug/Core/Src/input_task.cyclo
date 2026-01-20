@@ -1,4 +1,4 @@
-../Core/Src/input_task.c:27:6:HAL_GPIO_EXTI_Callback	4
-../Core/Src/input_task.c:67:6:Leer_Joystick_Polling	3
-../Core/Src/input_task.c:83:6:Leer_piezo_minotauro	5
-../Core/Src/input_task.c:122:6:Start_Input_Task	6
+../Core/Src/input_task.c:28:6:HAL_GPIO_EXTI_Callback	4
+../Core/Src/input_task.c:69:6:Leer_Joystick_Polling	3
+../Core/Src/input_task.c:85:6:Leer_piezo_minotauro	5
+../Core/Src/input_task.c:128:6:Start_Input_Task	5

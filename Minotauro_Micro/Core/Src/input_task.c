@@ -18,8 +18,9 @@ volatile uint16_t joyY = 0;
 extern ADC_HandleTypeDef hadc1;
 
 volatile uint16_t lectura_actual = 0;
-volatile uint8_t golpe_detectado = 0;
+//volatile uint8_t golpe_detectado = 0;
 extern ADC_HandleTypeDef hadc2;
+extern TIM_HandleTypeDef htim3;//Temporizador que activa tarea golpe
 
 extern osMessageQueueId_t ColaEventoHandle;
 extern osEventFlagsId_t InputEventsHandle; // Importamos el handle
@@ -63,6 +64,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 		        }
 	    }
 }
+
 
 void Leer_Joystick_Polling(void)
 {
@@ -108,7 +110,11 @@ void Leer_piezo_minotauro(void)
 
             // Si el salto es mayor a 500 (ajustable), es un impacto real
             if (derivada > 400) {
-                golpe_detectado = 1;
+                //golpe_detectado = 1;
+                //REINICIAR el contador del Timer a 0
+                 __HAL_TIM_SET_COUNTER(&htim3, 0);
+                // Iniciar el Timer para que nos avise en 100ms
+                 HAL_TIM_Base_Start_IT(&htim3);
             }
         }
 
@@ -154,8 +160,7 @@ void Start_Input_Task(void *argument)
             osDelay(50);
 
             // Confirmamos que la señal sigue activa (Golpe)
-            if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-            {
+           // if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
                 mensaje_evento = Event_GOLPE;
                 osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
 
@@ -164,7 +169,7 @@ void Start_Input_Task(void *argument)
                 // Esperamos a que se libere el pulsador
                 while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
                     osDelay(10);
-                }
+               // }
             }
         }
 
