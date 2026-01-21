@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define IR1_SENSOR_GPIO_Port GPIOC
 #define Piezo_minotauro_Pin GPIO_PIN_1
 #define Piezo_minotauro_GPIO_Port GPIOA
+#define CS_Pin GPIO_PIN_4
+#define CS_GPIO_Port GPIOA
 #define D4_Pin GPIO_PIN_8
 #define D4_GPIO_Port GPIOD
 #define D5_Pin GPIO_PIN_9

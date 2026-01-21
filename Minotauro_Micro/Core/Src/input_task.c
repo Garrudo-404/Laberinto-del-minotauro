@@ -12,13 +12,8 @@
 #define FLAG_GOLPE  0x00000001U
 #define FLAG_IR     0x00000002U
 
-/* Variables globales del joystick para Live Expressions */
-volatile uint16_t joyX = 0;
-volatile uint16_t joyY = 0;
-extern ADC_HandleTypeDef hadc1;
 
 volatile uint16_t lectura_actual = 0;
-//volatile uint8_t golpe_detectado = 0;
 extern ADC_HandleTypeDef hadc2;
 extern TIM_HandleTypeDef htim3;//Temporizador que activa tarea golpe
 
@@ -66,21 +61,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 }
 
 
-void Leer_Joystick_Polling(void)
-{
-    // 1. Leer Rank 1 (PA2)
-    HAL_ADC_Start(&hadc1);
-    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-        joyX = HAL_ADC_GetValue(&hadc1);
-    }
-
-    // 2. Leer Rank 2 (PA3)
-    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-        joyY = HAL_ADC_GetValue(&hadc1);
-    }
-
-    HAL_ADC_Stop(&hadc1);
-}
 
 void Leer_piezo_minotauro(void)
 {
@@ -143,10 +123,7 @@ void Start_Input_Task(void *argument)
     	/*PRUEBA CON FLAGS*/
     	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
-    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,
-    	                                           FLAG_GOLPE | FLAG_IR,
-    	                                           osFlagsWaitAny,
-    	                                           20);
+    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR,osFlagsWaitAny,20);
     	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
     	        //no esté enviando la señal de error por medio de una máscara
      if (!(flags_recibidos & 0x80000000))
@@ -192,7 +169,7 @@ void Start_Input_Task(void *argument)
              // AQUÍ LLEGAMOS SI PASARON LOS 20ms (TIMEOUT)
              // No hacemos nada, simplemente seguimos abajo hacia el joystick
          }
-        Leer_Joystick_Polling();
+        //Leer_Joystick_Polling();
         Leer_piezo_minotauro();
     }
 }
