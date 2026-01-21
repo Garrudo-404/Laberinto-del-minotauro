@@ -12,9 +12,12 @@
 #define FLAG_GOLPE  0x00000001U
 #define FLAG_IR     0x00000002U
 
-//extern osSemaphoreId_t SemBinGolpeHandle;
+
+volatile uint16_t lectura_actual = 0;
+extern ADC_HandleTypeDef hadc2;
+extern TIM_HandleTypeDef htim3;//Temporizador que activa tarea golpe
+
 extern osMessageQueueId_t ColaEventoHandle;
-//extern osSemaphoreId_t SemBinIRHandle;//Semáforo para el sensor IR
 extern osEventFlagsId_t InputEventsHandle; // Importamos el handle
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
@@ -57,9 +60,50 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	    }
 }
 
-// ASUMIMOS:
-// 1. Existe 'SemBinIRHandle' (creado en main.c)
-// 2. La ISR de GPIOC_PIN_1 libera 'SemBinIRHandle'.
+
+
+void Leer_piezo_minotauro(void)
+{
+	HAL_ADC_Start(&hadc2);
+    // Variables persistentes
+    static uint32_t tiempo_encendido = 0;
+    static uint16_t lectura_anterior = 0;
+
+    // Inicialización del temporizador de seguridad
+    if (tiempo_encendido == 0) {
+        tiempo_encendido = HAL_GetTick();
+        return; // Salimos para esperar al menos un ciclo
+    }
+
+    // 1. POLLING SEGURO (Sin Start/Stop)
+    // Solo esperamos a que el ADC (que ya está corriendo) tenga un dato nuevo
+    if (HAL_ADC_PollForConversion(&hadc2, 1) == HAL_OK)
+    {
+        lectura_actual = HAL_ADC_GetValue(&hadc2);
+
+        // 2. FILTRO DE SEGURIDAD (Tiempo + Derivada)
+        // Solo evaluamos si han pasado los 2 segundos de estabilización
+        if ((HAL_GetTick() - tiempo_encendido) > 400)
+        {
+            // Calculamos la diferencia brusca para ignorar la inclinación
+            int32_t derivada = (int32_t)lectura_actual - (int32_t)lectura_anterior;
+
+            // Si el salto es mayor a 500 (ajustable), es un impacto real
+            if (derivada > 400) {
+                //golpe_detectado = 1;
+                //REINICIAR el contador del Timer a 0
+                 __HAL_TIM_SET_COUNTER(&htim3, 0);
+                // Iniciar el Timer para que nos avise en 100ms
+                 HAL_TIM_Base_Start_IT(&htim3);
+            }
+        }
+
+        // Guardamos la lectura para la siguiente comparación de derivada
+        lectura_anterior = lectura_actual;
+    }
+    HAL_ADC_Stop(&hadc2);
+}
+
 
 void Start_Input_Task(void *argument)
 {
@@ -75,13 +119,15 @@ void Start_Input_Task(void *argument)
 
     for(;;)
     {
+
     	/*PRUEBA CON FLAGS*/
     	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
-    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,
-    	                                           FLAG_GOLPE | FLAG_IR,
-    	                                           osFlagsWaitAny,
-    	                                           osWaitForever);
+    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR,osFlagsWaitAny,20);
+    	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
+    	        //no esté enviando la señal de error por medio de una máscara
+     if (!(flags_recibidos & 0x80000000))
+    	{
         // ----------------------------------------------------
         // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
         // ----------------------------------------------------
@@ -91,8 +137,7 @@ void Start_Input_Task(void *argument)
             osDelay(50);
 
             // Confirmamos que la señal sigue activa (Golpe)
-            if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-            {
+           // if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
                 mensaje_evento = Event_GOLPE;
                 osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
 
@@ -101,7 +146,7 @@ void Start_Input_Task(void *argument)
                 // Esperamos a que se libere el pulsador
                 while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
                     osDelay(10);
-                }
+               // }
             }
         }
 
@@ -118,8 +163,14 @@ void Start_Input_Task(void *argument)
                 osDelay(100);
 
         }
-
-
+    	}
+     else
+         {
+             // AQUÍ LLEGAMOS SI PASARON LOS 20ms (TIMEOUT)
+             // No hacemos nada, simplemente seguimos abajo hacia el joystick
+         }
+        //Leer_Joystick_Polling();
+        Leer_piezo_minotauro();
     }
 }
 
