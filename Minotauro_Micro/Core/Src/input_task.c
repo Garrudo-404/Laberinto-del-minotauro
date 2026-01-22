@@ -41,16 +41,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	}
 	if (GPIO_Pin == IR1_SENSOR_Pin)
 	    {
-		/*LCD1602_clear();
-		LCD1602_print("Sensor IR");*/
-		//HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	    //osSemaphoreRelease(SemBinIRHandle);
-
-		/*PRUEBA CON FLAGS*/
 		/* ANTIRREBOTE POR HARDWARE/SOFTWARE EN LA ISR:
-		           Si han pasado menos de 500ms desde el último disparo, IGNORAMOS la interrupción.
-		           Esto evita inundar la cola y cumple con no hacer polling en la tarea.
-		        */
+		  Si han pasado menos de 500ms desde el último disparo, IGNORAMOS la interrupción.
+		  Esto evita inundar la cola y cumple con no hacer polling en la tarea. */
 		        if ((current_time - last_ir_time) > 500)
 		        {
 		            // Solo si ha pasado el tiempo de seguridad, avisamos a la tarea
@@ -85,15 +78,14 @@ void Leer_piezo_minotauro(void)
         lectura_actual = HAL_ADC_GetValue(&hadc2);
 
         // 2. FILTRO DE SEGURIDAD (Tiempo + Derivada)
-        // Solo evaluamos si han pasado los 2 segundos de estabilización
+        // Solo evaluamos si han pasado los 400ms de estabilización
         if ((HAL_GetTick() - tiempo_encendido) > 400)
         {
             // Calculamos la diferencia brusca para ignorar la inclinación
             int32_t derivada = (int32_t)lectura_actual - (int32_t)lectura_anterior;
 
-            // Si el salto es mayor a 500 (ajustable), es un impacto real
+            // Si el salto es mayor a 400 (ajustable), es un impacto real
             if (derivada > 400) {
-                //golpe_detectado = 1;
                 //REINICIAR el contador del Timer a 0
                  __HAL_TIM_SET_COUNTER(&htim3, 0);
                 // Iniciar el Timer para que nos avise en 100ms
@@ -124,11 +116,14 @@ void Start_Input_Task(void *argument)
     {
 
     	/*PRUEBA CON FLAGS*/
-    	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
+    	// La tarea se BLOQUEA hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
-    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR,osFlagsWaitAny,20);
-    	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
-    	        //no esté enviando la señal de error por medio de una máscara
+
+    	// Muy importante el Timeout en 20 en vez de osWaitForever para poder ejecutar Leer_piezo_minotauro(); cada 20ms
+    	 flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR,osFlagsWaitAny,20);
+
+    	// En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
+    	//no esté enviando la señal de error por medio de una máscara
      if (!(flags_recibidos & 0x80000000))
     	{
         // ----------------------------------------------------
@@ -138,19 +133,15 @@ void Start_Input_Task(void *argument)
         {
             // Retardo para el anti-rebote (después de despertar)
             osDelay(50);
-
             // Confirmamos que la señal sigue activa (Golpe)
-           // if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
-                mensaje_evento = Event_GOLPE;
-                osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
 
-                // Lógica LCD si fuera necesaria para el golpe
+            mensaje_evento = Event_GOLPE;
+            osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
 
-                // Esperamos a que se libere el pulsador
-                while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
-                    osDelay(10);
-               // }
-            }
+            // Lógica LCD si fuera necesaria para el golpe
+
+            // Esperamos a que se libere el pulsador
+             while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){osDelay(10); }
         }
 
         // ----------------------------------------------------
