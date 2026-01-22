@@ -7,6 +7,9 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "Eventos_Juego.h"
+#include "Core_Juego.h"
+
+
 
 //flags definidas
 #define FLAG_GOLPE  0x00000001U

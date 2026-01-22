@@ -5,6 +5,10 @@
  *      Author: danie
  */
 #include "main.h"
+#include "Core_Juego.h"
+#include "Eventos_Juego.h"
+
+
 
 //extern SPI_HandleTypeDef hspi1;
 //8 bits altos para eje x, 8 bits bajos para eje y
@@ -67,6 +71,7 @@ void StartFPGA_COM_Task(void *argument)
 
     for(;;)
     {
+
         // Lectura ejes x,y joystick
         Leer_Joystick_Polling();
 

@@ -28,7 +28,6 @@ void StartGameTask(void *argument)
 {
 	osDelay(100);
   /* USER CODE BEGIN 5 */
-	HAL_TIM_Base_Start_IT(&htim2);//arrancamos el temporizador una vez empieza el juego
 
 	EventoJuego evento_recibido=0;
 
@@ -46,6 +45,7 @@ void StartGameTask(void *argument)
   {
 	  switch(estado_actual){
 	  case Estado_INICIO:
+
 		  if(primera_vez)
 		  {
 		    LCD1602_clear();
@@ -82,6 +82,7 @@ void StartGameTask(void *argument)
 
 	  case Estado_JUGANDO:
 
+			HAL_TIM_Base_Start_IT(&htim2);//arrancamos el temporizador una vez empieza el juego
 
 		  if(primera_vez)
 		  {
@@ -89,8 +90,10 @@ void StartGameTask(void *argument)
 			  LCD1602_print("TURNO: ");
 			  LCD1602_print(jugadores[jugador_actual].nombre);
 			  LCD1602_2ndLine();
-			  LCD1602_print("GOLPES: ");
-			  LCD1602_print(jugadores[jugador_actual].golpes);
+			  char buffer_lcd[16];
+			  sprintf(buffer_lcd, "GOLPES: %d", jugadores[jugador_actual].golpes);
+			  LCD1602_print(buffer_lcd);
+
 
 
 
@@ -105,7 +108,11 @@ void StartGameTask(void *argument)
 		 		  switch (evento_recibido)
 		 		  {
 		 		    case Event_GOLPE:
+
 		 		    	jugadores[jugador_actual].golpes++;
+		 		    	LCD1602_clear();
+		 		    	LCD1602_print("TURNO: ");
+		 		    	LCD1602_print(jugadores[jugador_actual].nombre);
 		 		    	char buffer_lcd[16];
 		 		    	sprintf(buffer_lcd, "GOLPES: %d", jugadores[jugador_actual].golpes);
 		 		    	LCD1602_2ndLine();
@@ -154,6 +161,11 @@ void StartGameTask(void *argument)
 		 	  LCD1602_clear();
 		 	  LCD1602_print("TURNO: ");
 		 	  LCD1602_print(jugadores[jugador_actual].nombre);
+		 	  char buffer_lcd[16];
+		 	  sprintf(buffer_lcd, "GOLPES: %d", jugadores[jugador_actual].golpes);
+			  LCD1602_2ndLine();
+			  LCD1602_print(buffer_lcd);
+
 		 			  }
 		 	break;
 
