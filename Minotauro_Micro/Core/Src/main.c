@@ -35,6 +35,7 @@
 //flags definidas
 #define FLAG_GOLPE  0x00000001U
 #define FLAG_IR     0x00000002U
+#define FLAG_CAMBIO 0x00000003U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/

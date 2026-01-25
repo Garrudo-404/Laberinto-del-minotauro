@@ -71,8 +71,9 @@ void StartGameTask(void *argument)
 		    // Esperamos eventos para pasar de estado
 		    if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, osWaitForever) == osOK)
 		    {
-		      if(evento_recibido == Event_GOLPE)
+		      if(evento_recibido == Event_CAMBIO_ESTADO)
 		      {
+		    	//cambiamos estado a jugando con PA0
 		        estado_actual = Estado_JUGANDO;
 		        primera_vez = 1; // Importante: Activamos para pintar la pantalla del siguiente estado
 		       }
@@ -86,6 +87,7 @@ void StartGameTask(void *argument)
 
 		  if(primera_vez)
 		  {
+
 			  LCD1602_clear();
 			  LCD1602_print("TURNO: ");
 			  LCD1602_print(jugadores[jugador_actual].nombre);
@@ -143,6 +145,12 @@ void StartGameTask(void *argument)
 		 		    	 LCD1602_print("Vuelva al inicio");
 		 		    	 break;
 
+		 		    case Event_CAMBIO_ESTADO:
+
+		 		    	//cambiamos a fin
+		 		    	estado_actual = Estado_FIN;
+		 		    	primera_vez = 1;
+
 		 		  }
 		 	  }
 		 		 //chequeamos el tiempo
@@ -184,8 +192,9 @@ void StartGameTask(void *argument)
 		   primera_vez = 0;
 		    }
 	 	  if(osMessageQueueGet(ColaEventoHandle, &evento_recibido, NULL, osWaitForever) == osOK){
-	 		  if(evento_recibido==Event_GOLPE){
+	 		  if(evento_recibido==Event_CAMBIO_ESTADO){
 
+	 			  //cambiamos a inicio
 	 			 HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 		    	 estado_actual = Estado_INICIO;
 		    	 primera_vez = 1;

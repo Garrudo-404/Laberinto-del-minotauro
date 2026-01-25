@@ -14,6 +14,7 @@
 //flags definidas
 #define FLAG_GOLPE  0x00000001U
 #define FLAG_IR     0x00000002U
+#define FLAG_CAMBIO 0x00000004U
 
 
 volatile uint16_t lectura_actual = 0;
@@ -26,18 +27,23 @@ extern osEventFlagsId_t InputEventsHandle; // Importamos el handle
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 	static uint32_t last_ir_time = 0; // Variable estática para recordar el tiempo desde la ultima interrupcion
-	    uint32_t current_time = HAL_GetTick();
+	static uint32_t last_btn_time = 0;
+	uint32_t current_time = HAL_GetTick();
 
 	if(GPIO_Pin == GPIO_PIN_0)
 	{
 
-		//liberamos al semaforo con la interrupcion
-		//osSemaphoreRelease(SemBinGolpeHandle);
 
 
-		/*PRUEBA CON FLAGS*/
-		// Enviamos la señal (Flag) directamente
-		        osEventFlagsSet(InputEventsHandle, FLAG_GOLPE);
+
+		// Enviamos la señal (cambio) directamente tras tiempo de seguridad
+		if ((current_time - last_btn_time) > 500)
+		     {
+			  // Solo si ha pasado el tiempo de seguridad, avisamos a la tarea
+		      osEventFlagsSet(InputEventsHandle, FLAG_CAMBIO);
+			  last_btn_time = current_time;
+
+			 }
 	}
 	if (GPIO_Pin == IR1_SENSOR_Pin)
 	    {
@@ -123,57 +129,67 @@ void Start_Input_Task(void *argument)
     for(;;)
     {
 
-    	/*PRUEBA CON FLAGS*/
-    	// La tarea se BLOQUEA (Dorme) aquí indefinidamente hasta que
+
+    	// La tarea se BLOQUEA indefinidamente hasta que
     	// ocurra ALGUNO (osFlagsWaitAny) de los eventos.
-    	        flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR,osFlagsWaitAny,20);
-    	        // En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
-    	        //no esté enviando la señal de error por medio de una máscara
-     if (!(flags_recibidos & 0x80000000))
+    	flags_recibidos = osEventFlagsWait(InputEventsHandle,FLAG_GOLPE | FLAG_IR | FLAG_CAMBIO,osFlagsWaitAny,20);
+    	// En CMSIS-RTOS v2, los errores tienen el bit más alto en 1, asi que comprueba que
+    	//no esté enviando la señal de error por medio de una máscara
+    	uint8_t hay_flags = !(flags_recibidos & 0x80000000);
+
+    	if(hay_flags && (flags_recibidos & FLAG_CAMBIO))
     	{
-        // ----------------------------------------------------
-        // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
-        // ----------------------------------------------------
-        if (flags_recibidos & FLAG_GOLPE)
-        {
-            // Retardo para el anti-rebote (después de despertar)
-            osDelay(50);
-
-            // Confirmamos que la señal sigue activa (Golpe)
-           // if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
-                mensaje_evento = Event_GOLPE;
-                osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
-
-                // Lógica LCD si fuera necesaria para el golpe
-
-                // Esperamos a que se libere el pulsador
-                while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
-                    osDelay(10);
-               // }
-            }
-        }
-
-        // ----------------------------------------------------
-        // 2. MANEJO DE EVENTO IR (GPIOC, PIN_1)
-        // ----------------------------------------------------
-        if (flags_recibidos & FLAG_IR)
-        {
-            //el antirebote ya lo habiamos metido en la gestion de la interrupcion
-
-
-                mensaje_evento = Event_IR_DETECTED;
-                osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
-                osDelay(100);
-
-        }
+    		mensaje_evento = Event_CAMBIO_ESTADO;
+    		osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
+    		osDelay(100); // espera antirebotes
     	}
+
+    //solo procesamos ir y golpes si estamos jugando
+     if(estado_actual==Estado_JUGANDO)
+     {
+    	 if (hay_flags)
+    	     	{
+    	         // ----------------------------------------------------
+    	         // 1. MANEJO DE EVENTO GOLPE (GPIOA, PIN_0)
+    	         // ----------------------------------------------------
+    	         if (flags_recibidos & FLAG_GOLPE)
+    	         {
+    	             // Retardo para el anti-rebote (después de despertar)
+    	             osDelay(50);
+    	             mensaje_evento = Event_GOLPE;
+    	             osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
+
+    	             // Esperamos a que se libere el pulsador
+    	             while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET){
+    	             osDelay(10);
+    	             }
+    	         }
+
+    	         // ----------------------------------------------------
+    	         // 2. MANEJO DE EVENTO IR (GPIOC, PIN_1)
+    	         // ----------------------------------------------------
+    	         if (flags_recibidos & FLAG_IR)
+    	         {
+    	             //el antirebote ya lo habiamos metido en la gestion de la interrupcion
+    	             mensaje_evento = Event_IR_DETECTED;
+    	             osMessageQueuePut(ColaEventoHandle, &mensaje_evento, 0, 0);
+    	             osDelay(100);
+    	         }
+
+
+    	     	}
+
+    	 //leemos piezoelectrico solo si estamos jugando
+    	  Leer_piezo_minotauro();
+        }
+
+
+
      else
          {
              // AQUÍ LLEGAMOS SI PASARON LOS 20ms (TIMEOUT)
-             // No hacemos nada, simplemente seguimos abajo hacia el joystick
+             // No hacemos nada
          }
-        //Leer_Joystick_Polling();
-        Leer_piezo_minotauro();
     }
 }
 
