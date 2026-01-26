@@ -82,10 +82,10 @@ void StartFPGA_COM_Task(void *argument)
         // Bajamos CS: La FPGA pone su contador a 0 y se prepara
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 
-        // Ahora envio 2 variables de 16 bits (0-255) ya centrados
+        // Ahora envio 2 bytes de 8 bits (0-255) ya centrados
         HAL_SPI_Transmit(&hspi1, spi_buffer, 2, 10);
 
-        // Subimos CS
+        // Subimos CS: La FPGA toma los 16 bits recibidos y actualiza el PWM de golpe
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
 
