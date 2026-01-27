@@ -76,8 +76,8 @@ void StartFPGA_COM_Task(void *argument)
         Leer_Joystick_Polling();
 
         // Suponemos centro medido en 2030
-        spi_buffer[0] = 123; //mapear_joystick(joyX);
-        spi_buffer[1] = 456;//mapear_joystick(joyY);
+        spi_buffer[0] = mapear_joystick(joyX);
+        spi_buffer[1] = mapear_joystick(joyY);
 
         // Bajamos CS: La FPGA pone su contador a 0 y se prepara
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
