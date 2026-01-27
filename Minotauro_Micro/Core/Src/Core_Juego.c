@@ -156,8 +156,14 @@ void StartGameTask(void *argument)
 		 		 //chequeamos el tiempo
 		 	 if(temp_turno==0)
 		 	 {
+		 	 // Código para activar el buzzer en PC5 durante 1 segundo
+		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);    // Encender Buzzer
+		 	  osDelay(1000);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
+		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);  // Apagar Buzzer
+
 		      jugador_actual++;
 		 	  if(jugador_actual>(NUM_JUGADORES-1)){jugador_actual=0;}
+
 
 		       //actualizamos LED
 		 	   TurnoLEDS(jugadores[jugador_actual]);
