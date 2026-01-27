@@ -17,7 +17,7 @@ extern TIM_HandleTypeDef htim2;//Me la traigo al codigo
 //extern osSemaphoreId_t SemBinGolpeHandle;
 extern osMessageQueueId_t ColaEventoHandle;
 
-volatile uint8_t temp_turno;//volatile ya que esta variable la toca la interrupcion
+volatile uint8_t temp_turno = 30;//volatile ya que esta variable la toca la interrupcion
 
 uint8_t jugador_actual;
 static Jugador jugadores[NUM_JUGADORES];
@@ -33,7 +33,7 @@ void StartGameTask(void *argument)
 
 
 	jugador_actual=0;
-	temp_turno = 45;
+	temp_turno = 30;
 
 
 	TurnoLEDS(jugadores[jugador_actual]);
@@ -56,7 +56,7 @@ void StartGameTask(void *argument)
 
 		    // Inicializamos datos
 		    jugador_actual = 0;
-		    temp_turno = 45;
+		    temp_turno = 30;
 		    for(uint8_t i = 0; i < NUM_JUGADORES; i++){
 		    jugadores[i].id = i + 1;
 		    sprintf(jugadores[i].nombre, "J%d", i + 1);
@@ -148,6 +148,11 @@ void StartGameTask(void *argument)
 		 		 //chequeamos el tiempo
 		 	 if(temp_turno==0)
 		 	 {
+		 	  // Código para activar el buzzer en PC5 durante 1 segundo
+		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);    // Encender Buzzer
+		 	  osDelay(1000);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
+		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);  // Apagar Buzzer
+
 		      jugador_actual++;
 		 	  if(jugador_actual>(NUM_JUGADORES-1)){jugador_actual=0;}
 
@@ -155,7 +160,7 @@ void StartGameTask(void *argument)
 		 	   TurnoLEDS(jugadores[jugador_actual]);
 
 		 	   //reiniciamos el reloj
-		 	   temp_turno=45;
+		 	   temp_turno=30;
 
 		 	  // Actualizar LCD para el nuevo jugador
 		 	  LCD1602_clear();
