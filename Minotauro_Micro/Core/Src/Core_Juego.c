@@ -158,7 +158,7 @@ void StartGameTask(void *argument)
 		 	 {
 		 	 // Código para activar el buzzer en PC5 durante 1 segundo
 		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);    // Encender Buzzer
-		 	  osDelay(1000);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
+		 	  osDelay(500);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
 		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);  // Apagar Buzzer
 
 		      jugador_actual++;

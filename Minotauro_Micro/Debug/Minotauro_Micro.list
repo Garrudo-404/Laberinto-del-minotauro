@@ -1411,8 +1411,8 @@ void StartGameTask(void *argument)
  8000ef0:	2120      	movs	r1, #32
  8000ef2:	4854      	ldr	r0, [pc, #336]	@ (8001044 <StartGameTask+0x49c>)
  8000ef4:	f002 fb86 	bl	8003604 <HAL_GPIO_WritePin>
-		 	  osDelay(1000);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
- 8000ef8:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+		 	  osDelay(500);                                        // Esperar 1 segundo (No bloqueante para el RTOS)
+ 8000ef8:	f44f 70fa 	mov.w	r0, #500	@ 0x1f4
  8000efc:	f005 f850 	bl	8005fa0 <osDelay>
 		 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);  // Apagar Buzzer
  8000f00:	2200      	movs	r2, #0
